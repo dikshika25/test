@@ -1,0 +1,5270 @@
+openapi: 3.0.1
+info:
+  title: Vantage Streams Service APIs
+  description: |-
+    The following APIs provide the Vantage Streams system administrator the ability to manage their source and target systems, and Vantage Streams users the ability to manage their streams. They include:
+    1. Defining the source and target systems and their credentials, and configuring streams.
+    2. Bulk operations to start/stop/reassign streams.
+    3. Retrieve errors associated with streams.
+
+    Refer to <a href="https://docs.teradata.com/access/sources/dita/map?dita:mapPath=rqg1621967526468.ditamap" target="_blank">Teradata Vantage Streams API User Guide</a> for more information
+servers:
+  - url: http://localhost:8080
+security:
+  - Vantage Single Sign On: []
+tags:
+  - name: Streams
+    description: The following APIs allow administrators to manage all streams and users to manage their own streams
+  - name: Internal Operations
+    description: Internal API(s) to update status of Stream operations
+  - name: Policy
+    description: The following API will provide details that customers can use to create an IAM Role and create a trust relationship between the customer and Teradata account.
+  - name: Credentials
+    description: The following APIs enable the management of credentials for source or target system - <b>Admin only</b>
+  - name: Internal Site Operations
+    description: 'Internal API(s) for site operations '
+  - name: Stream Statistics
+    description: APIs to manage stream statistics
+  - name: Internal Customer Operations
+    description: 'Internal API(s) for customer operations '
+  - name: Bulk Actions
+    description: The following APIs allow an administrator/user to perform bulk operations (Start/Stop/Reassign) on Stream(s)
+  - name: Internal Config Stores
+    description: Internal API(s) to manage Site Coordinator application properties
+  - name: Source and Target Systems
+    description: The following APIs enable the management of source or target systems (Source e.g., Kafka - Target e.g., Teradata Database) - <b>Admin only</b>
+  - name: Internal System Operations
+    description: Internal APIs for system operations
+  - name: Vantage streaming events
+    description: The following API will list the events
+paths:
+  /internal/api/v1/configs/levels/{level}/{level_id}:
+    get:
+      tags:
+        - Internal Config Stores
+      summary: Get Config Properties by LevelId
+      operationId: getConfigByLevelId
+      parameters:
+        - name: level
+          in: path
+          description: Level for the config
+          required: true
+          schema:
+            type: string
+            enum:
+              - GLOBAL
+              - PLATFORM
+              - CUSTOMER
+              - SITE
+        - name: level_id
+          in: path
+          description: Id of a level
+          required: true
+          schema:
+            type: string
+        - name: processed
+          in: query
+          description: '''processed'' = true returns list of properties upto the given level, where common properties from different levels will be overridden based on the level precedence order - SITE > CUSTOMER > PLATFORM > GLOBAL. ''processed'' = false returns properties present in the given level.'
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Get Config Properties by LevelId
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetConfigLevelProperties'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have permissions to create a config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Level or property with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      tags:
+        - Internal Config Stores
+      summary: Update properties in a level
+      operationId: putConfigByLevelId
+      parameters:
+        - name: level
+          in: path
+          description: Level for the config
+          required: true
+          schema:
+            type: string
+            enum:
+              - GLOBAL
+              - PLATFORM
+              - CUSTOMER
+              - SITE
+        - name: level_id
+          in: path
+          description: Id of a level
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditConfigLevelProperties'
+        required: true
+      responses:
+        '204':
+          description: Property updated
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have permissions to edit a property
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Level or property with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Internal Config Stores
+      summary: Delete all properties in a level
+      operationId: deleteConfigByLevelId
+      parameters:
+        - name: level
+          in: path
+          description: Level for the config
+          required: true
+          schema:
+            type: string
+            enum:
+              - GLOBAL
+              - PLATFORM
+              - CUSTOMER
+              - SITE
+        - name: level_id
+          in: path
+          description: Id of a level
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Deleted all properties in a level
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have permissions to delete a property
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Level or property with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /internal/api/v1/systems:
+    post:
+      tags:
+        - Internal System Operations
+      summary: Create a target system
+      operationId: createTargetSystem
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InternalCreateSystem'
+        required: true
+      responses:
+        '201':
+          description: Source or target system created
+          headers:
+            X-Resource-Id:
+              description: Auto-generated id for source or target system
+              style: simple
+            Location:
+              description: A link to the created system
+              style: simple
+        '400':
+          description: Unable to create source or target system
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have Vantage Streams Administrator permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: System with given name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /internal/api/v1/sites:
+    get:
+      tags:
+        - Internal Site Operations
+      summary: List sites
+      operationId: getSites
+      responses:
+        '200':
+          description: List sites
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GetSite'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User is not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Internal Site Operations
+      operationId: createSite
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProvisionSite'
+        required: true
+      responses:
+        '201':
+          description: Site onboarded
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have permissions to onboard a site
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Source or target system with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /internal/api/v1/sites/{site_id}/actions:
+    post:
+      tags:
+        - Internal Site Operations
+      summary: Perform an action (Pre-upgrade/Post-upgrade/Init) on a site
+      operationId: performActionOnSite
+      parameters:
+        - name: site_id
+          in: path
+          description: Site identifier
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SiteActions'
+        required: true
+      responses:
+        '200':
+          description: Site action request accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiteActionResponse'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User is not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Source or target system with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /internal/api/v1/metrics:
+    post:
+      tags:
+        - Stream Statistics
+      summary: Update stream statistics
+      operationId: postMetrics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricEventDto'
+        required: true
+      responses:
+        '200':
+          description: Metric saved successfully
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User is not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /internal/api/v1/customers:
+    post:
+      tags:
+        - Internal Customer Operations
+      summary: Create a customer
+      operationId: createCustomer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterCustomer'
+        required: true
+      responses:
+        '201':
+          description: Successfully registered the customer
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User is not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/systems:
+    get:
+      tags:
+        - Source and Target Systems
+      summary: List source or target systems
+      operationId: getSystems
+      parameters:
+        - name: type
+          in: query
+          description: Type of System
+          required: false
+          schema:
+            type: string
+            enum:
+              - KAFKA
+              - KINESIS
+              - EVENT_HUBS
+              - TERADATA_DATABASE
+        - name: category
+          in: query
+          description: General category of system (event streaming system or database system)
+          required: false
+          schema:
+            type: string
+            enum:
+              - EVENT_STREAMING_SYSTEM
+              - DATABASE
+        - name: page
+          in: query
+          description: Page Number
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+            default: 1
+        - name: page-size
+          in: query
+          description: Number of items to return for each page
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+            default: 10
+        - name: sort
+          in: query
+          description: Property and direction to sort results by
+          required: false
+          allowReserved: true
+          schema:
+            type: string
+            example: name:asc
+            default: created_on:desc
+      responses:
+        '200':
+          description: List of source or target systems returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GetSystem'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Source and Target Systems
+      summary: Create a source or target system
+      operationId: createSystem
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSystem'
+        required: true
+      responses:
+        '201':
+          description: Source or target system created
+          headers:
+            X-Resource-Id:
+              description: Auto-generated id for source or target system
+              style: simple
+            Location:
+              description: A link to the created system
+              style: simple
+        '400':
+          description: Unable to create source or target system
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have Vantage Streams Administrator permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: System with given name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/systems/{system_id}/credentials:
+    get:
+      tags:
+        - Credentials
+      summary: List Credentials of a source or target system
+      operationId: getCredentials
+      parameters:
+        - name: system_id
+          in: path
+          description: Id of system that credential will be associated with
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          description: Page Number
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+            default: 1
+        - name: page-size
+          in: query
+          description: Number of items to return for each page
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+            default: 10
+        - name: sort
+          in: query
+          description: Property and direction to sort results by
+          required: false
+          allowReserved: true
+          schema:
+            type: string
+            example: name:asc
+            default: created_on:desc
+      responses:
+        '200':
+          description: List of Credential for a source or target system returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GetCredential'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Credentials
+      summary: Create a Credential for a source or target system
+      operationId: createCredential
+      parameters:
+        - name: system_id
+          in: path
+          description: Id of system that credential will be associated with
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCredential'
+        required: true
+      responses:
+        '201':
+          description: Credential for a source or target system created
+          headers:
+            X-Resource-Id:
+              description: Auto-generated id for credential
+              style: simple
+            Location:
+              description: A link to the created credential
+              style: simple
+        '400':
+          description: Unable to create credential
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have Vantage Streams Administrator permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Credential with given name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/streams:
+    get:
+      tags:
+        - Streams
+      summary: List Streams
+      operationId: getStreams
+      parameters:
+        - name: site
+          in: query
+          description: Site identifier
+          required: false
+          schema:
+            pattern: ^[a-zA-Z0-9_-]+$
+            type: string
+        - name: status
+          in: query
+          description: Current status of stream
+          required: false
+          schema:
+            type: string
+            enum:
+              - CREATED
+              - STARTING
+              - STARTED
+              - STOPPING
+              - STOPPED
+              - ERROR
+              - RECOVERING
+              - PAUSED
+        - name: owner
+          in: query
+          description: Owner for the stream
+          required: false
+          schema:
+            pattern: ^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$
+            type: string
+        - name: page
+          in: query
+          description: Page Number
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+            default: 1
+        - name: page-size
+          in: query
+          description: Number of items to return for each page
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+            default: 10
+        - name: sort
+          in: query
+          description: Property and direction to sort results by
+          required: false
+          allowReserved: true
+          schema:
+            type: string
+            example: name:asc
+            default: created_on:desc
+      responses:
+        '200':
+          description: List of streams returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GetAllStreams'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+        - Streams
+      summary: Create a Stream
+      operationId: createStream
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStream'
+        required: true
+      responses:
+        '201':
+          description: Stream created
+          headers:
+            X-Resource-Id:
+              description: Auto-generated id for stream.
+              style: simple
+            Location:
+              description: A link to the created stream
+              style: simple
+        '400':
+          description: Unable to create stream
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have Vantage Streams Administrator permissions or is not stream owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Stream with given name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/streams/{stream_id}/actions:
+    post:
+      tags:
+        - Streams
+      summary: Perform an action (Start/Stop/Reassign) on a Stream
+      operationId: executeStreamAction
+      parameters:
+        - name: stream_id
+          in: path
+          description: Auto-generated id for stream.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StreamActions'
+            example:
+              action: STOP
+        required: true
+      responses:
+        '202':
+          description: Action performed on the stream
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StreamActionResponse'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have Vantage Streams Administrator permissions or is not stream owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Stream with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Unable to perform this action on a stream that is currently running
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/streams/actions:
+    post:
+      tags:
+        - Bulk Actions
+      summary: Perform an action (Start/Stop/Reassign) on multiple Streams
+      operationId: createBulkStreamActions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBulkStreamActions'
+        required: true
+      responses:
+        '207':
+          description: Bulk actions completed (see result for status for each stream)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkStreamActionsResponseBody'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have Vantage Streams Administrator permissions or is not stream owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /internal/api/v1/streams/{stream_id}:
+    patch:
+      tags:
+        - Internal Operations
+      summary: Update Current Status of a Stream
+      operationId: editStreamStatus
+      parameters:
+        - name: stream_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StreamStatus'
+        required: true
+      responses:
+        '204':
+          description: Updated status successfully
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User is not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Source or target system with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /internal/api/v1/streams/{stream_id}/worker-config:
+    patch:
+      tags:
+        - Internal Operations
+      summary: Update worker configuration of a Stream
+      operationId: editWorkerConfig
+      parameters:
+        - name: stream_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThroughputConfig'
+        required: true
+      responses:
+        '204':
+          description: Updated status successfully
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User is not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Source or target system with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /internal/api/v1/sites/{site_id}:
+    get:
+      tags:
+        - Internal Site Operations
+      summary: Get site details
+      operationId: getSite
+      parameters:
+        - name: site_id
+          in: path
+          description: Id for Site
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Get site details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetSite'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User is not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Source or target system with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Internal Site Operations
+      summary: Offboard a site
+      operationId: deleteSite
+      parameters:
+        - name: site_id
+          in: path
+          description: Id for Site
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Site offboarded
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have permissions to offboard a site
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Source or target system with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Operation cannot be performed as site has active streams
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - Internal Site Operations
+      summary: Edit a site
+      operationId: editSite
+      parameters:
+        - name: site_id
+          in: path
+          description: Id for Site
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditSite'
+        required: true
+      responses:
+        '204':
+          description: Site updated
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have permissions to update a site
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Source or target system with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /internal/api/v1/customers/{customer_id}:
+    get:
+      tags:
+        - Internal Customer Operations
+      summary: Get customer by id
+      operationId: getCustomer
+      parameters:
+        - name: customer_id
+          in: path
+          description: Id for Customer
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Get customer by id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCustomer'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User is not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Source or target system with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - Internal Customer Operations
+      summary: Edit a customer
+      operationId: editCustomer
+      parameters:
+        - name: customer_id
+          in: path
+          description: Id for Customer
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditCustomer'
+        required: true
+      responses:
+        '204':
+          description: Successfully updated the customer
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User is not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /internal/api/v1/configs/properties/{property_id}:
+    get:
+      tags:
+        - Internal Config Stores
+      summary: Get property details
+      operationId: getConfigByPropertyId
+      parameters:
+        - name: property_id
+          in: path
+          description: Randomly generated id of a property
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Get property details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetConfigPropertyMetadata'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have permissions to get a config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Property with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Internal Config Stores
+      summary: Delete a property
+      operationId: deleteConfigByPropertyId
+      parameters:
+        - name: property_id
+          in: path
+          description: Randomly generated id of a property
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Property deleted
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have permissions to delete a property
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Level or property with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - Internal Config Stores
+      summary: Edit a property
+      operationId: editConfigByPropertyId
+      parameters:
+        - name: property_id
+          in: path
+          description: Randomly generated id of a property
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditProperty'
+        required: true
+      responses:
+        '204':
+          description: Property updated
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have permissions to edit a property
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Level or property with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/systems/{system_id}:
+    get:
+      tags:
+        - Source and Target Systems
+      summary: Get a source or target system
+      operationId: getSystem
+      parameters:
+        - name: system_id
+          in: path
+          description: Auto-generated id for source or target system
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Source or target system returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetSystem'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Source or target system with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Source and Target Systems
+      summary: Delete a source or target system
+      operationId: deleteSystem
+      parameters:
+        - name: system_id
+          in: path
+          description: Auto-generated id for source or target system
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Source or target system deleted
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have Vantage Streams Administrator permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Source or target system with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Source or target system in use by a stream
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - Source and Target Systems
+      summary: Edit a source or target system
+      operationId: editSystem
+      parameters:
+        - name: system_id
+          in: path
+          description: Auto-generated id for source or target system
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditSystem'
+        required: true
+      responses:
+        '204':
+          description: Source or target system updated
+        '400':
+          description: Unable to update source or target system
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have Vantage Streams Administrator permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Source or target system with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Action cannot be performed; system upgrade in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: System with given name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/systems/{system_id}/credentials/{credential_id}:
+    get:
+      tags:
+        - Credentials
+      summary: Get a Credential of a source or target system
+      operationId: getCredential
+      parameters:
+        - name: system_id
+          in: path
+          description: Id of system that credential will be associated with
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: credential_id
+          in: path
+          description: Auto-generated id for credential
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Credential for a source or target system returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCredential'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Credential with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Credentials
+      summary: Delete a Credential of a source or target system
+      operationId: deleteCredential
+      parameters:
+        - name: system_id
+          in: path
+          description: Id of system that credential will be associated with
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: credential_id
+          in: path
+          description: Auto-generated id for credential
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Credential for a source or target system deleted
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have Vantage Streams Administrator permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Credential with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Credential in use by a stream
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - Credentials
+      summary: Edit a Credential of a source or target system
+      operationId: editCredential
+      parameters:
+        - name: system_id
+          in: path
+          description: Id of system that credential will be associated with
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: credential_id
+          in: path
+          description: Auto-generated id for credential
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditCredential'
+        required: true
+      responses:
+        '204':
+          description: Credential for a source or target system updated
+        '400':
+          description: Unable to update credential
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have Vantage Streams Administrator permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Credential with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Action cannot be performed; system upgrade in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Credential with given name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/streams/{stream_id}:
+    get:
+      tags:
+        - Streams
+      summary: 'Get a Stream '
+      operationId: getStream
+      parameters:
+        - name: stream_id
+          in: path
+          description: Auto-generated id for stream.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Stream returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetStream'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Stream with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags:
+        - Streams
+      summary: 'Delete a Stream '
+      operationId: deleteStream
+      parameters:
+        - name: stream_id
+          in: path
+          description: Auto-generated id for stream.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Stream deleted
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have Vantage Streams Administrator permissions or is not stream owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Stream with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Unable to delete a stream that is currently running
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+    patch:
+      tags:
+        - Streams
+      summary: 'Edit a Stream '
+      operationId: editStream
+      parameters:
+        - name: stream_id
+          in: path
+          description: Auto-generated id for stream.
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditStream'
+        required: true
+      responses:
+        '204':
+          description: Stream updated
+        '400':
+          description: Unable to update stream
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have Vantage Streams Administrator permissions or is not stream owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Stream with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Stream with given name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /internal/api/v1/sites/{site_id}/streams:
+    get:
+      tags:
+        - Internal Site Operations
+      summary: Get all streams for a given site
+      operationId: getStreamsBySiteId
+      parameters:
+        - name: site_id
+          in: path
+          description: Id for Site
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Current status of stream
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - CREATED
+                - STARTING
+                - STARTED
+                - STOPPING
+                - STOPPED
+                - ERROR
+                - RECOVERING
+                - PAUSED
+      responses:
+        '200':
+          description: Get all streams for a given site
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GetAllStreams'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /internal/api/v1/sites/{site_id}/history:
+    get:
+      tags:
+        - Internal Site Operations
+      summary: Get site status history
+      operationId: getSiteHistory
+      parameters:
+        - name: site_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Status to filter by
+          required: false
+          schema:
+            type: string
+            enum:
+              - OPERATIONAL
+              - PROVISIONING
+              - UPGRADING
+              - RETIRED
+              - OFFBOARDING
+        - name: page
+          in: query
+          description: Page Number
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+            default: 1
+        - name: page-size
+          in: query
+          description: Number of items to return for each page
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+            default: 10
+        - name: start-timestamp
+          in: query
+          description: 'Start of the time range to filter site status in this format: yyyy-MM-ddTHH:mm:ss[.sss]Z'
+          required: false
+          schema:
+            type: string
+        - name: end-timestamp
+          in: query
+          description: 'End of the time range to filter site status in this format: yyyy-MM-ddTHH:mm:ss[.sss]Z'
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of status history events for a site returned
+          content:
+            application/json:
+              schema:
+                type: string
+                example:
+                  - status: OPERATIONAL
+                    event_timestamp: '2022-01-18T11:08:09.270457Z'
+                  - status: UPGRADING
+                    event_timestamp: '2022-01-18T11:05:49.178589Z'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Site with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /internal/api/v1/sites/{site_id}/configs:
+    get:
+      tags:
+        - Internal Site Operations
+      summary: Get site config details
+      operationId: getConfigBySiteId
+      parameters:
+        - name: site_id
+          in: path
+          description: Id for Site
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Get site config details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetSiteLevelConfigProperties'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User is not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Source or target system with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /internal/api/v1/events:
+    get:
+      tags:
+        - Vantage streaming events
+      summary: List vantage streaming events
+      operationId: getEvents
+      parameters:
+        - name: event-action
+          in: query
+          description: Event action
+          required: false
+          schema:
+            type: string
+            enum:
+              - NOTIFY
+              - STOP_STREAM
+        - name: customer-id
+          in: query
+          description: Id for Customer
+          required: false
+          schema:
+            type: string
+        - name: event-action-status
+          in: query
+          description: Status of the event action
+          required: false
+          schema:
+            type: string
+            enum:
+              - COMPLETED
+              - CREATED
+              - IN_PROGRESS
+              - FAILED
+        - name: start-timestamp
+          in: query
+          description: 'Start of the time range to filter events in this format: yyyy-MM-ddTHH:mm:ss[.sss]Z'
+          required: false
+          schema:
+            type: string
+        - name: end-timestamp
+          in: query
+          description: 'End of the time range to filter events in this format: yyyy-MM-ddTHH:mm:ss[.sss]Z'
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page Number
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+            default: 1
+        - name: page-size
+          in: query
+          description: Number of items to return for each page
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+            default: 10
+      responses:
+        '200':
+          description: List of events returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GetEvent'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User is not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /internal/api/v1/configs/properties:
+    get:
+      tags:
+        - Internal Config Stores
+      summary: Get the levels at which the property is present
+      operationId: getConfigByPropertyName
+      parameters:
+        - name: property_name
+          in: query
+          description: Name of a property
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Get the levels at which the property is present
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GetConfigProperty'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have permissions to create a config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Level or property with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /internal/api/v1/configs/levels/{level}:
+    get:
+      tags:
+        - Internal Config Stores
+      summary: Get config summary for a level
+      operationId: getConfigSummaryByLevel
+      parameters:
+        - name: level
+          in: path
+          description: Level for the config
+          required: true
+          schema:
+            type: string
+            enum:
+              - GLOBAL
+              - PLATFORM
+              - CUSTOMER
+              - SITE
+      responses:
+        '200':
+          description: Get config summary for a level
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetConfigLevelSummary'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have permissions to create a config
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Level or property with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/systems/{system_id}/credentials/{credential_id}/topics:
+    get:
+      tags:
+        - Source and Target Systems
+      summary: Get topics from a streaming system
+      operationId: getTopics
+      parameters:
+        - name: system_id
+          in: path
+          description: Auto-generated id for source or target system
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: credential_id
+          in: path
+          description: Auto-generated id for credential
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of topics returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/systems/{system_id}/credentials/{credential_id}/databases:
+    get:
+      tags:
+        - Source and Target Systems
+      summary: Get databases from a database system
+      operationId: getDatabases
+      parameters:
+        - name: system_id
+          in: path
+          description: Auto-generated id for source or target system
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: credential_id
+          in: path
+          description: Auto-generated id for credential
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of databases returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/systems/{system_id}/credentials/{credential_id}/databases/{database_name}/tables:
+    get:
+      tags:
+        - Source and Target Systems
+      summary: List tables in target system database
+      operationId: getTables
+      parameters:
+        - name: system_id
+          in: path
+          description: Auto-generated id for source or target system
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: credential_id
+          in: path
+          description: Auto-generated id for credential
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: database_name
+          in: path
+          description: Database name
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of tables returned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/streams/{stream_id}/stats:
+    get:
+      tags:
+        - Streams
+      summary: Get stream statistics
+      operationId: getStreamStatistics
+      parameters:
+        - name: stream_id
+          in: path
+          description: Auto-generated id for stream.
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: metric
+          in: query
+          description: Metric to retrieve statistics for.
+          required: true
+          schema:
+            type: string
+            enum:
+              - TOTAL_RECORDS_COUNT
+              - INGESTED_RECORDS_COUNT
+              - INGESTED_RECORDS_BYTES
+              - INGEST_RATE_RECORDS_PER_SECOND
+              - INGEST_RATE_BYTES_PER_SECOND
+              - TOTAL_RATE_RECORDS_PER_SECOND
+              - AVERAGE_LATENCY_MILLISECONDS
+              - MAX_LATENCY_MILLISECONDS
+              - ERROR_RATE_BYTES_PER_SECOND
+              - ERROR_RECORDS_COUNT
+              - ERROR_RECORDS_BYTES
+        - name: start-time
+          in: query
+          description: 'Start of the time range to filter metrics in this format: yyyy-MM-ddTHH:mm:ss[.sss]Z'
+          required: true
+          allowReserved: true
+          schema:
+            type: string
+        - name: end-time
+          in: query
+          description: 'End of the time range to filter metrics in this format: yyyy-MM-ddTHH:mm:ss[.sss]Z'
+          required: true
+          allowReserved: true
+          schema:
+            type: string
+        - name: interval
+          in: query
+          description: Time interval to group the statistics by.
+          required: false
+          schema:
+            type: string
+            default: HOURLY
+            enum:
+              - HOURLY
+              - DAILY
+        - name: page-size
+          in: query
+          description: 'Desired number of results per request (minimum: 1; maximum: 500; default: 50).'
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 50
+        - name: next-token
+          in: query
+          description: Pagination token to be used in subsequent requests.
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of Statistics for the stream returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetStreamStatistics'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Stream with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/streams/{stream_id}/history:
+    get:
+      tags:
+        - Streams
+      summary: Get stream status history
+      operationId: getStreamHistory
+      parameters:
+        - name: stream_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          description: Status to filter by
+          required: false
+          schema:
+            type: string
+            enum:
+              - CREATED
+              - STARTING
+              - STARTED
+              - STOPPING
+              - STOPPED
+              - ERROR
+              - RECOVERING
+              - PAUSED
+              - ALL
+        - name: page
+          in: query
+          description: Page Number
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+            default: 1
+        - name: page-size
+          in: query
+          description: Number of items to return for each page
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+            default: 10
+        - name: start-timestamp
+          in: query
+          description: 'Start of the time range to filter stream status in this format: yyyy-MM-ddTHH:mm:ss[.sss]Z'
+          required: false
+          schema:
+            type: string
+        - name: end-timestamp
+          in: query
+          description: 'End of the time range to filter stream status in this format: yyyy-MM-ddTHH:mm:ss[.sss]Z'
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of status history events for a stream returned
+          content:
+            application/json:
+              schema:
+                type: string
+                example:
+                  - status: ERROR
+                    error_type: CONSUMER_CONFIG_ERROR
+                    message: Error reading field version
+                    event_timestamp: 1617275548
+                  - status: ERROR
+                    error_type: NETWORK_ERROR
+                    message: Error connection timed out
+                    event_timestamp: 1819275548
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Stream with specified id not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/policy:
+    get:
+      tags:
+        - Policy
+      summary: Generate Policy
+      operationId: getPolicy
+      parameters:
+        - name: type
+          in: query
+          description: Type of System
+          required: true
+          schema:
+            type: string
+            enum:
+              - KINESIS
+        - name: region
+          in: query
+          description: AWS Region for Kinesis System
+          required: false
+          schema:
+            type: string
+        - name: account-number
+          in: query
+          description: Customer's AWS Account number where Kinesis streams are hosted.
+          required: false
+          schema:
+            maxLength: 12
+            minLength: 12
+            type: string
+        - name: stream-names
+          in: query
+          description: Kinesis stream names on which access should be provided
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Successfully generated the policy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetPolicy'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: User is not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User does not have Vantage Streams Administrator permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '405':
+          description: Method Not Allowed
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        date:
+          type: string
+          format: date-time
+    CreateProperty:
+      required:
+        - name
+        - value
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of a property
+          example: worker.memory
+        value:
+          type: string
+          description: Value of a property
+          example: '1024'
+    EditConfigLevelProperties:
+      required:
+        - properties
+      type: object
+      properties:
+        properties:
+          type: array
+          description: Properties for the config
+          example:
+            - name: worker.memory
+              value: '1024'
+            - name: site.region
+              value: us-west-2
+          items:
+            $ref: '#/components/schemas/CreateProperty'
+    CreateTeradataDatabaseSystemSettings:
+      required:
+        - host
+        - port
+        - site
+      type: object
+      properties:
+        site:
+          pattern: ^[a-zA-Z0-9_-]+$
+          type: string
+          description: Site identifier
+          example: TDICAMHRZPROD02
+        host:
+          pattern: ^(((?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,6}|((0|1\d?\d?|2[0-4]?\d?|25[0-5]?|[3-9]\d?)\.){3}(0|1\d?\d?|2[0-4]?\d?|25[0-5]?|[3-9]\d?))
+          type: string
+          description: The hostname of a database system
+          example: 100.12.13.234
+        port:
+          type: integer
+          description: The TCP port of a database system
+          format: int32
+          example: 1025
+      description: Specific settings to access target system
+    InternalCreateSystem:
+      required:
+        - name
+        - settings
+        - type
+      type: object
+      properties:
+        name:
+          maxLength: 128
+          minLength: 1
+          pattern: '[A-Za-z][ A-Za-z0-9_.-]+$'
+          type: string
+          description: Unique name for target system
+          example: TDICAMHRZPROD02_sqle
+        description:
+          maxLength: 256
+          minLength: 0
+          pattern: '[A-Za-z][ A-Za-z0-9_.,-]+$'
+          type: string
+          description: User provided summary describing the purpose of target system
+          example: Default teradata database system
+        type:
+          type: string
+          description: Type of System
+          example: TERADATA_DATABASE
+          enum:
+            - TERADATA_DATABASE
+        settings:
+          $ref: '#/components/schemas/CreateTeradataDatabaseSystemSettings'
+    ProvisionSite:
+      required:
+        - platform_account_id
+        - site_id
+        - status
+      type: object
+      properties:
+        site_id:
+          maxLength: 64
+          minLength: 1
+          type: string
+          description: Id for Site
+          example: TDICA03040DEV01
+        customer_id:
+          type: string
+          description: Id for Customer
+          example: f03c5b68dbcaac1c498d3423e29619ec
+        site_gateway_url:
+          pattern: ^(https)\://([A-Za-z0-9]|\.[A-Za-z0-9]|-[A-Za-z0-9])*(\:\d{2,5})?$
+          type: string
+          description: Site gateway
+          example: https://site.teradata.com:8080
+        cloud_platform:
+          type: string
+          example: AWS
+          enum:
+            - AWS
+            - GCP
+        status:
+          type: string
+          example: PROVISIONING
+          enum:
+            - OPERATIONAL
+            - PROVISIONING
+            - UPGRADING
+            - RETIRED
+            - OFFBOARDING
+        platform_account_id:
+          type: string
+          description: Platform account id for site
+          example: '012345678912'
+        region:
+          maxLength: 25
+          minLength: 1
+          pattern: ^[a-zA-Z0-9-]+$
+          type: string
+          description: Region of Site
+          example: us-west-2
+        coordinator_build_version:
+          pattern: ^\d*.\d*.\d*$
+          type: string
+          description: Build version of the site coordinator
+          example: 1.34.123
+        sqle_node_ip:
+          pattern: ^(((?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,6}|((0|1\d?\d?|2[0-4]?\d?|25[0-5]?|[3-9]\d?)\.){3}(0|1\d?\d?|2[0-4]?\d?|25[0-5]?|[3-9]\d?))
+          type: string
+          description: The hostname of a database system
+          example: 100.12.13.234
+      description: Site
+    InitActionParameters:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SiteActionParameters'
+        - type: object
+          properties:
+            site_coordinator_ip:
+              type: string
+              description: IP of new instance of Site coordinator. This is a required field if the cloud platform is AWS.
+              example: 109.49.15.39
+    SiteActionParameters:
+      type: object
+      description: Extra parameters that offer an option
+    SiteActions:
+      required:
+        - action
+      type: object
+      properties:
+        action:
+          type: string
+          description: Action to be performed on a site
+          example: INIT
+          enum:
+            - PRE_UPGRADE
+            - POST_UPGRADE
+            - INIT
+        parameters:
+          oneOf:
+            - $ref: '#/components/schemas/InitActionParameters'
+    SiteActionResponse:
+      required:
+        - message
+      type: object
+      properties:
+        message:
+          type: string
+    MetricEventDto:
+      required:
+        - resource_id
+        - resource_type
+        - site_id
+        - stats
+        - type
+      type: object
+      properties:
+        resource_id:
+          type: string
+          example: abcd-efgh-ghij-1234
+        resource_type:
+          type: string
+          example: Stream
+        site_id:
+          type: string
+          example: TEST123
+        type:
+          type: string
+          enum:
+            - STREAM_STATS
+            - STREAM_OFFSETS
+        stats:
+          type: array
+          example:
+            - key: Ingested_Count
+              value: 300
+            - key: Error_Count
+              value: 30
+          items:
+            $ref: '#/components/schemas/MetricStatistic'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/MetricTag'
+        timestamp:
+          type: integer
+          format: int64
+          example: 1615798143000
+    MetricStatistic:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: object
+      example:
+        - key: Ingested_Count
+          value: 300
+        - key: Error_Count
+          value: 30
+    MetricTag:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+    CreateServiceAccount:
+      required:
+        - password
+        - username
+      type: object
+      properties:
+        username:
+          pattern: '[a-zA-Z0-9\._\-@]+$'
+          type: string
+          description: Username for the service account
+          example: test_user
+        password:
+          type: string
+          description: Password for the service account
+          example: myPass#1
+      description: Service account for the site
+    RegisterCustomer:
+      required:
+        - encryption_key_arn
+        - id
+        - service_account
+      type: object
+      properties:
+        id:
+          maxLength: 64
+          minLength: 1
+          type: string
+          description: Id for Customer
+          example: '12345'
+        encryption_key_arn:
+          pattern: ^arn\:aws\:kms\:(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d\:[0-9]{12}\:key/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$
+          type: string
+          description: Key ARN for Customer
+          example: arn:aws:kms:us-west-2:123456789571:key/a463bc7d-c3f1-43bb-aa78-0bbkkb5dc0dc
+        status:
+          type: string
+          description: Customer Status
+          example: ONBOARDED
+          enum:
+            - PROVISIONING
+            - ONBOARDED
+            - OFFBOARDING
+            - OFFBOARDED
+        service_account:
+          $ref: '#/components/schemas/CreateServiceAccount'
+      description: Register customer
+    CreateEventHubSystemSettings:
+      required:
+        - namespace
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/CreateSystemSettingsDto'
+        - type: object
+          properties:
+            namespace:
+              type: string
+              description: Azure Namespace for Event Hub
+              example: testNamespace
+    CreateKafkaSystemSettings:
+      required:
+        - bootstrap_servers
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/CreateSystemSettingsDto'
+        - type: object
+          properties:
+            bootstrap_servers:
+              type: array
+              description: Comma-separated list of host and port pairs  for the cluster of Kafka brokers
+              example:
+                - kafka1.example.com:9092
+                - kafka2.example.com:9092
+              items:
+                type: string
+    CreateKinesisSystemSettings:
+      required:
+        - region
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/CreateSystemSettingsDto'
+        - type: object
+          properties:
+            region:
+              type: string
+              description: AWS Region for Kinesis System
+              example: us-west-2
+    CreateSystem:
+      required:
+        - name
+        - settings
+        - type
+      type: object
+      properties:
+        name:
+          maxLength: 128
+          minLength: 1
+          pattern: '[A-Za-z][ A-Za-z0-9_.-]+$'
+          type: string
+          description: Unique name for source or target system
+          example: MyKafka
+        description:
+          maxLength: 256
+          minLength: 0
+          pattern: '[A-Za-z][ A-Za-z0-9_.,-]+$'
+          type: string
+          description: User provided summary describing the purpose of source or target system
+          example: Kafka in prod environment
+        type:
+          type: string
+          description: Type of System
+          example: KAFKA
+          enum:
+            - KAFKA
+            - KINESIS
+            - EVENT_HUBS
+            - TERADATA_DATABASE
+        settings:
+          oneOf:
+            - $ref: '#/components/schemas/CreateEventHubSystemSettings'
+            - $ref: '#/components/schemas/CreateKafkaSystemSettings'
+            - $ref: '#/components/schemas/CreateKinesisSystemSettings'
+            - $ref: '#/components/schemas/CreateTeradataDatabaseSystemSettings'
+      example:
+        name: MyKafka
+        description: Kafka in prod environment
+        type: KAFKA
+        settings:
+          bootstrap_servers:
+            - kafka1.example.com:9092
+            - kafka2.example.com:9092
+    CreateSystemSettingsDto:
+      type: object
+      description: Specific settings to access source or target system
+    CreateCredential:
+      required:
+        - credential_details
+        - name
+      type: object
+      properties:
+        name:
+          maxLength: 128
+          minLength: 1
+          pattern: '[A-Za-z][ A-Za-z0-9_.-]+$'
+          type: string
+          description: Unique name for credential
+          example: System-1 Credential
+        description:
+          maxLength: 256
+          minLength: 0
+          pattern: '[A-Za-z][ A-Za-z0-9_.,-]+$'
+          type: string
+          description: User provided summary describing the purpose of a credential
+          example: Kafka Credential for System-1
+        credential_details:
+          oneOf:
+            - $ref: '#/components/schemas/EventHubCredentialDetails'
+            - $ref: '#/components/schemas/KafkaCredentialDetails'
+            - $ref: '#/components/schemas/KinesisCredentialDetails'
+            - $ref: '#/components/schemas/TeradataDatabaseCredentialDetails'
+      example:
+        name: System Credential
+        description: Kafka Credential for System-1
+        credential_details:
+          security_protocol: SASL_SSL
+          security_properties:
+            mechanism: PLAIN
+            login_properties:
+              username: test_user
+              password: myPass#1
+    CredentialDetailsDto:
+      type: object
+      description: Details of a system specific credential
+    EventHubCredentialDetails:
+      required:
+        - authorization_mechanism
+        - credentials
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/CredentialDetailsDto'
+        - type: object
+          properties:
+            authorization_mechanism:
+              type: string
+              description: Authorization can be done using 'SHARED ACCESS SIGNATURE'
+              example: SHARED_ACCESS_SIGNATURE
+              enum:
+                - SHARED_ACCESS_SIGNATURE
+            credentials:
+              $ref: '#/components/schemas/EventHubCredentials'
+    EventHubCredentials:
+      type: object
+      description: Connection Credentials
+      oneOf:
+        - $ref: '#/components/schemas/EventHubSASCredentials'
+    EventHubSASCredentials:
+      required:
+        - sas_key
+        - sas_key_name
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/EventHubCredentials'
+        - type: object
+          properties:
+            sas_key_name:
+              type: string
+              description: SAS Key Name
+              example: EventHubSASKeyName
+            sas_key:
+              type: string
+              description: SAS Key
+              writeOnly: true
+              example: sjC+fKXmd+rgQKBgmbuVnQsx/XMhrBIWldN0gNEzdRp=
+    KafkaCredentialDetails:
+      required:
+        - security_protocol
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/CredentialDetailsDto'
+        - type: object
+          properties:
+            security_protocol:
+              type: string
+              description: Kafka security protocol used for authentication
+              example: SASL_SSL
+              enum:
+                - PLAINTEXT
+                - SASL_SSL
+            security_properties:
+              $ref: '#/components/schemas/SecurityProperties'
+    KinesisCredentialDetails:
+      required:
+        - role_arn
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/CredentialDetailsDto'
+        - type: object
+          properties:
+            role_arn:
+              pattern: ^(arn:aws:iam::\d{12}:[a-zA-Z]+/[a-zA-Z0-9\+=,\.@\-_]+)$
+              type: string
+              description: Role arn key used for authenticating with Kinesis system
+              example: arn:aws:iam::123456789012:role/Vantage_streams_kinesis_access
+    LoginProperties:
+      type: object
+      description: Login properties for SASL protocol
+      writeOnly: true
+      oneOf:
+        - $ref: '#/components/schemas/PlainLoginProperties'
+    PlainLoginProperties:
+      required:
+        - password
+        - username
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/LoginProperties'
+        - type: object
+          properties:
+            username:
+              pattern: ^[\p{IsAlphabetic}0-9_\.]+$
+              type: string
+              example: test_user
+            password:
+              type: string
+              example: myPass#1
+    PlainTextProperties:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SecurityProperties'
+    SaslProperties:
+      required:
+        - login_properties
+        - mechanism
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SecurityProperties'
+        - type: object
+          properties:
+            mechanism:
+              type: string
+              description: SASL mechanism type
+              example: PLAIN
+              enum:
+                - PLAIN
+            login_properties:
+              $ref: '#/components/schemas/LoginProperties'
+    SecurityProperties:
+      type: object
+      description: Security properties used for authentication
+      oneOf:
+        - $ref: '#/components/schemas/SaslProperties'
+        - $ref: '#/components/schemas/PlainTextProperties'
+    TeradataDatabaseCredentialDetails:
+      required:
+        - password
+        - user
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/CredentialDetailsDto'
+        - type: object
+          properties:
+            user:
+              pattern: ^[\p{IsAlphabetic}0-9_\.]+$
+              type: string
+              description: Username for authenticating with Teradata Database System
+              example: test_user
+            password:
+              type: string
+              description: Password for authenticating with Teradata Database System
+              writeOnly: true
+              example: myPass#1
+    CreateEventHubStreamSourceSettings:
+      required:
+        - event_hub_name
+        - event_position_type
+      type: object
+      example:
+        event_hub_name: truck_locations
+        event_position_type: EARLIEST
+      allOf:
+        - $ref: '#/components/schemas/StreamSourceSettings'
+        - type: object
+          properties:
+            event_hub_name:
+              pattern: '[a-zA-Z0-9\._\-]{1,128}'
+              type: string
+              description: The name of the event hub to read from
+              example: truck_locations
+            event_position_type:
+              type: string
+              description: Initial event position in an event hub to read from
+              example: EARLIEST
+              enum:
+                - EARLIEST
+                - LATEST
+                - FROM_ENQUEUED_TIME
+            enqueued_datetime:
+              type: string
+              description: Date and time from which the event enqueued within the partition will be read.
+              format: date-time
+              example: '2021-07-28T10:43:25.964Z'
+            maximum_message_count:
+              type: integer
+              description: The maximum number of messages to receive in a batch
+              format: int32
+              example: 500
+    CreateKafkaStreamSourceSettings:
+      required:
+        - initial_offset
+        - topic
+      type: object
+      example:
+        topic: location
+        initial_offset: EARLIEST
+        offset_timestamp: null
+      allOf:
+        - $ref: '#/components/schemas/StreamSourceSettings'
+        - type: object
+          properties:
+            topic:
+              pattern: '[a-zA-Z0-9\._\-]{1,255}'
+              type: string
+              description: The Kafka topic to read from
+              example: truck_locations
+            initial_offset:
+              type: string
+              description: Initial offset in the Kafka topic to read from
+              example: EARLIEST
+              enum:
+                - EARLIEST
+                - LATEST
+                - AT_TIMESTAMP
+            offset_timestamp:
+              type: string
+              description: The timestamp used for initial offset setting "AT_TIMESTAMP"
+              format: date-time
+              example: '2021-07-28T10:43:25.964Z'
+    CreateKinesisStreamSourceSettings:
+      required:
+        - shard_iterator_type
+        - stream_name
+      type: object
+      example:
+        stream_name: truck_locations
+        shard_iterator_type: TRIM_HORIZON
+      allOf:
+        - $ref: '#/components/schemas/StreamSourceSettings'
+        - type: object
+          properties:
+            stream_name:
+              pattern: '[a-zA-Z0-9\._\-]{1,128}'
+              type: string
+              description: The name of the Kinesis data stream to read from
+              example: truck_locations
+            shard_iterator_type:
+              type: string
+              description: Initial shard iterator in a kinesis data stream to read from
+              example: TRIM_HORIZON
+              enum:
+                - TRIM_HORIZON
+                - LATEST
+                - AT_TIMESTAMP
+            sequence_timestamp:
+              type: string
+              description: The timestamp used for initial shard iterator setting "AT_TIMESTAMP"
+              format: date-time
+              example: '2021-07-28T10:43:25.964Z'
+            max_records_per_read:
+              type: integer
+              description: Maximum number of records fetched in a single read operation
+              format: int32
+              example: 1000
+            max_reads_per_second:
+              type: integer
+              description: Maximum number of read operations performed per second
+              format: int32
+              example: 2
+    CreateStream:
+      required:
+        - data_format
+        - error_handling
+        - name
+        - source_credential_id
+        - source_settings
+        - source_system_id
+        - target_credential_id
+        - target_settings
+        - target_system_id
+        - transformation_rules
+      type: object
+      properties:
+        name:
+          maxLength: 128
+          minLength: 1
+          pattern: '[A-Za-z][ A-Za-z0-9_.-]+$'
+          type: string
+          description: Unique name for stream
+          example: truck_locations
+        description:
+          maxLength: 256
+          minLength: 0
+          pattern: '[A-Za-z][ A-Za-z0-9_.,-]+$'
+          type: string
+          description: User provided summary describing the purpose of the stream
+          example: This stream will have locations data
+        source_system_id:
+          type: string
+          description: Id of source system for the stream
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        target_system_id:
+          type: string
+          description: Id of target system for the stream
+          format: uuid
+          example: 38400000-8cf0-11bd-b23e-10b96e4ef00d
+        source_credential_id:
+          type: string
+          description: Id of credential to use for the source system of the stream
+          format: uuid
+          example: 3c034ae6-fab8-49f6-901c-aeffd1763f28
+        target_credential_id:
+          type: string
+          description: Id of credential to use for the target system of the stream
+          format: uuid
+          example: 8659a44e-e2c6-4dd5-a6a3-4a3ed9a73818
+        source_settings:
+          oneOf:
+            - $ref: '#/components/schemas/CreateEventHubStreamSourceSettings'
+            - $ref: '#/components/schemas/CreateKafkaStreamSourceSettings'
+            - $ref: '#/components/schemas/CreateKinesisStreamSourceSettings'
+        target_settings:
+          oneOf:
+            - $ref: '#/components/schemas/CreateTeradataDatabaseStreamTargetSettings'
+        data_format:
+          type: string
+          description: Structure of the data in the source system
+          example: JSON
+          enum:
+            - JSON
+            - RAW_TEXT
+            - RAW_BINARY
+        transformation_rules:
+          oneOf:
+            - $ref: '#/components/schemas/JsonTransformationRules'
+            - $ref: '#/components/schemas/RawBinaryTransformationRules'
+            - $ref: '#/components/schemas/RawTextTransformationRules'
+        error_handling:
+          $ref: '#/components/schemas/ErrorHandlingSettings'
+    CreateTeradataDatabaseStreamTargetSettings:
+      required:
+        - database
+        - table
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/StreamTargetSettings'
+        - type: object
+          properties:
+            database:
+              pattern: ^[^\d][a-zA-Z0-9\(\)\[\]\{\}\<\>\?\.\,\|"~@$=%+#_`!;'^&\:\*\-\/\\]*{1,128}$
+              type: string
+              description: Database to write to
+              example: locationDB
+            table:
+              pattern: ^[^\d][a-zA-Z0-9\(\)\[\]\{\}\<\>\?\.\,\|"~@$=%+#_`!;'^&\:\*\-\/\\]*{1,128}$
+              type: string
+              description: Table to write to
+              example: truck_locations
+    ErrorHandlingSettings:
+      required:
+        - error_table
+      type: object
+      properties:
+        format_mismatch_thresholds:
+          type: array
+          description: Thresholds for managing data mismatch errors
+          example:
+            - percentage: 10
+              action: NOTIFY
+            - percentage: 50
+              action: STOP_STREAM
+          items:
+            $ref: '#/components/schemas/FormatMismatchThreshold'
+        error_table:
+          pattern: ^[^\d][a-zA-Z0-9\(\)\[\]\{\}\<\>\?\.\,\|"~@$=%+#_`!;'^&\:\*\-\/\\]*{1,128}$|^$
+          type: string
+          description: Target table for storing mismatched data (needs to be in same database as stream target table)
+          example: LOCATION_STREAM_ERROR
+      description: Rules for handling data mismatch errors
+    FormatMismatchThreshold:
+      required:
+        - action
+        - percentage
+      type: object
+      properties:
+        percentage:
+          type: integer
+          description: Percent of mismatched records in a batch to trigger an action
+          format: int32
+        action:
+          type: string
+          description: Action to trigger when threshold is reached
+          enum:
+            - NOTIFY
+            - STOP_STREAM
+      description: Thresholds for managing data mismatch errors
+      example:
+        - percentage: 10
+          action: NOTIFY
+        - percentage: 50
+          action: STOP_STREAM
+    JsonMapping:
+      required:
+        - data_type
+        - property_path
+        - target
+      type: object
+      properties:
+        property_path:
+          pattern: '[A-Za-z0-9/_]*$'
+          type: string
+          description: A valid [JSON pointer expression](https://tools.ietf.org/html/draft-ietf-appsawg-json-pointer-03) linking to the property in the source data to read from
+          example: /event
+        target:
+          pattern: ^[a-zA-Z0-9_]+$
+          type: string
+          description: Column in the target table to write to
+          example: Event_DT
+        data_type:
+          type: string
+          description: SQL data type of the column in the target table
+          example: VARCHAR
+          enum:
+            - CHAR
+            - VARCHAR
+            - BYTEINT
+            - SMALLINT
+            - INTEGER
+            - BIGINT
+            - FLOAT
+            - DECIMAL
+            - NUMBER
+            - DATE
+            - TIME
+            - TIMESTAMP
+            - TIME WITH TIME ZONE
+            - TIMESTAMP WITH TIME ZONE
+        required:
+          type: boolean
+          description: Is the property required (default is false)
+          example: false
+        min_length:
+          type: integer
+          description: Minimum length for string properties
+          format: int32
+        max_length:
+          type: integer
+          description: Maximum length for string properties
+          format: int32
+        min_value:
+          type: string
+          description: Minimum value for decimal and date/time data types
+        max_value:
+          type: string
+          description: Maximum value for decimal and date/time data types
+        formatting:
+          type: string
+          description: Date format to use for date/time data types (uses formats from java.time.format.DateTimeFormatter)
+      description: Individual data mapping rules for each column
+    JsonTransformationRules:
+      required:
+        - mapping
+      type: object
+      example:
+        character_encoding: UTF-8
+        mapping:
+          - property_path: /event/location
+            target: Event_Location
+            data_type: VARCHAR
+            required: true
+            min_length: 1
+            max_length: 256
+          - property_path: /event/temperature
+            target: Event_Temperature
+            data_type: FLOAT
+            required: false
+            min_value: '-20.00'
+            max_value: '120.00'
+          - property_path: /event/start_time
+            target: Event_Start_Time
+            data_type: TIMESTAMP WITH TIME ZONE
+            required: false
+            formatting: uuuu-MM-dd HH:mm:ss[.SSS][XXX][X]
+      allOf:
+        - $ref: '#/components/schemas/TransformationRules'
+        - type: object
+          properties:
+            character_encoding:
+              type: string
+              description: |-
+                Character encoding for the data in the  source system as defined in [IAMA Character Set Registry](http://www.iana.org/assignments/character-sets/character-sets.xhtml) 
+
+                see the [user guide](https://docs.oracle.com/en/java/javase/11/intl/supported-encodings.html) for more details
+              example: UTF-8
+            mapping:
+              type: array
+              description: Individual data mapping rules for each column
+              items:
+                $ref: '#/components/schemas/JsonMapping'
+    RawBinaryMapping:
+      required:
+        - value_column
+        - value_column_type
+      type: object
+      properties:
+        value_column_type:
+          type: string
+          description: Data type for the body of the record from the source system
+          enum:
+            - BLOB
+            - VARBYTE
+        value_column:
+          pattern: ^[a-zA-Z0-9_]+$
+          type: string
+          description: Column to store the body of the record from the source system
+        timestamp_column:
+          pattern: ^[a-zA-Z0-9_]+$
+          type: string
+          description: Column to store the timestamp of the record from the source system
+      description: Data mapping rules for the raw binary data
+    RawBinaryTransformationRules:
+      required:
+        - mapping
+      type: object
+      example:
+        mapping:
+          value_column: EVENT_DATA
+          value_column_type: BLOB
+          timestamp_column: EVENT_TIME
+      allOf:
+        - $ref: '#/components/schemas/TransformationRules'
+        - type: object
+          properties:
+            mapping:
+              $ref: '#/components/schemas/RawBinaryMapping'
+    RawTextMapping:
+      required:
+        - value_column
+        - value_column_type
+      type: object
+      properties:
+        value_column_type:
+          type: string
+          description: Data type for the body of the record from the source system
+          enum:
+            - CLOB
+            - VARCHAR
+        value_column:
+          pattern: ^[a-zA-Z0-9_]+$
+          type: string
+          description: Column to store the body of the record from the source system
+        timestamp_column:
+          pattern: ^[a-zA-Z0-9_]+$
+          type: string
+          description: Column to store the timestamp of the record from the source system
+      description: Data mapping rules for the raw text data
+    RawTextTransformationRules:
+      required:
+        - mapping
+      type: object
+      example:
+        character_encoding: UTF-8
+        mapping:
+          value_column: EVENT_DATA
+          value_column_type: CLOB
+          timestamp_column: EVENT_TIME
+      allOf:
+        - $ref: '#/components/schemas/TransformationRules'
+        - type: object
+          properties:
+            character_encoding:
+              type: string
+              description: |-
+                Character encoding for the data in the  source system as defined in [IAMA Character Set Registry](http://www.iana.org/assignments/character-sets/character-sets.xhtml) 
+
+                see the [user guide](https://docs.oracle.com/en/java/javase/11/intl/supported-encodings.html) for more details
+              example: UTF-8
+            mapping:
+              $ref: '#/components/schemas/RawTextMapping'
+    StreamSourceSettings:
+      type: object
+      description: Specific settings for reading from the source system
+    StreamTargetSettings:
+      type: object
+      description: Specific settings for writing to the target system
+    TransformationRules:
+      type: object
+      description: Set of rules for transforming data from source format to target table
+    ReassignActionParameters:
+      required:
+        - new_owner
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/StreamActionParameters'
+        - type: object
+          properties:
+            new_owner:
+              pattern: ^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$
+              type: string
+              description: Username of the new owner of the stream when the action is "REASSIGN"
+              example: john.doe@example.com
+    StreamActionParameters:
+      type: object
+      description: Extra parameters that offer an option
+    StreamActions:
+      required:
+        - action
+      type: object
+      properties:
+        action:
+          type: string
+          description: Action to take on stream
+          example: REASSIGN
+          enum:
+            - START
+            - STOP
+            - REASSIGN
+        parameters:
+          oneOf:
+            - $ref: '#/components/schemas/ReassignActionParameters'
+    StreamActionResponse:
+      required:
+        - message
+      type: object
+      properties:
+        message:
+          type: string
+    BulkStreamActionFilters:
+      type: object
+      properties:
+        owners:
+          type: string
+          description: Comma-separated list of the usernames of stream owners to match.  You can use the wildcard character '*' to match all stream owners
+          example: kira.adams@example.com, nick.spelman@example.com
+        system_ids:
+          type: string
+          description: Comma-separated list of the auto-generated IDs of systems to match.  You can use the wildcard character '*' to match all systems
+          example: 3bd85f64-5717-4562-b3fc-2c963f66afa6, 3f034ae6-fab8-49f6-901c-aeffd1763f28
+        stream_ids:
+          type: string
+          description: Comma-separated list of the auto-generated IDs of streams to match.  You can use the wildcard character '*' to match all streams
+          example: '*'
+      description: Criteria for stream(s) to match
+    CreateBulkStreamActions:
+      required:
+        - action
+        - filters
+      type: object
+      properties:
+        action:
+          type: string
+          description: Action to take on stream
+          example: REASSIGN
+          enum:
+            - START
+            - STOP
+            - REASSIGN
+        parameters:
+          oneOf:
+            - $ref: '#/components/schemas/ReassignActionParameters'
+        filters:
+          $ref: '#/components/schemas/BulkStreamActionFilters'
+    BulkStreamActionsResponseBody:
+      type: object
+      properties:
+        responses:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/SingleStreamActionResponseBody'
+      example:
+        responses:
+          3e9733de-bba6-4e13-93d7-c93603f10f73:
+            status_code: '202'
+            message: 'STOPPING stream id: 3e9733de-bba6-4e13-93d7-c93603f10f73'
+          afd66d2b-20cf-46f4-b5ab-cef1c48d4354:
+            status_code: '409'
+            message: Stream afd66d2b-20cf-46f4-b5ab-cef1c48d4354 is starting. Cannot perform the operation. Please try again later
+    SingleStreamActionResponseBody:
+      type: object
+      properties:
+        message:
+          type: string
+        status_code:
+          type: string
+        href:
+          type: string
+    StreamStatus:
+      required:
+        - status
+      type: object
+      properties:
+        status:
+          type: string
+          description: Current Status of the Stream
+          example: ERROR
+          enum:
+            - CREATED
+            - STARTING
+            - STARTED
+            - STOPPING
+            - STOPPED
+            - ERROR
+            - RECOVERING
+            - PAUSED
+        error:
+          type: string
+          description: Error which caused stream to stop.
+          example: CONSUMER_CONFIG_ERROR
+          enum:
+            - FORMAT_MISMATCH_THRESHOLD
+            - CONSUMER_CONFIG_ERROR
+            - INGESTOR_CONFIG_ERROR
+            - SYSTEM_ERROR
+            - NETWORK_ERROR
+            - SERVICE_ERROR
+        message:
+          type: string
+          description: Stream status info eg, Error messages or Info messages
+          example: Error reading field version
+      description: Stream Status
+    AutoThroughputSchemeConfig:
+      required:
+        - provisioningModel
+      type: object
+      properties:
+        provisioningModel:
+          type: string
+          description: Provisioning model LOW, MEDIUM, HIGH
+          example: LOW
+          enum:
+            - LOW
+            - MEDIUM
+            - HIGH
+      description: Automatic throughput scheme configuration
+    ManualThroughputSchemeConfig:
+      required:
+        - maxPartitionsPerWorker
+      type: object
+      properties:
+        maxWorkers:
+          type: integer
+          description: this param indicates the maximum number of workers
+          format: int32
+          example: 2
+        maxPartitionsPerWorker:
+          type: integer
+          description: this param indicates how many partitions to allocate per worker
+          format: int32
+          example: 3
+      description: Manual throughput scheme configuration
+    ThroughputConfig:
+      required:
+        - scheme
+      type: object
+      properties:
+        scheme:
+          type: string
+          description: throughput scheme MANUAL or AUTO
+          example: AUTO
+          enum:
+            - MANUAL
+            - AUTO
+        manualConfig:
+          $ref: '#/components/schemas/ManualThroughputSchemeConfig'
+        autoConfig:
+          $ref: '#/components/schemas/AutoThroughputSchemeConfig'
+      description: A configuration to provision the workers for the stream
+    EditSite:
+      type: object
+      properties:
+        site_gateway_url:
+          pattern: ^(https)\://([A-Za-z0-9]|\.[A-Za-z0-9]|-[A-Za-z0-9])*(\:\d{2,5})?$
+          type: string
+          description: Site gateway
+          example: https://site.teradata.com:8080
+        status:
+          type: string
+          example: OPERATIONAL
+          enum:
+            - OPERATIONAL
+            - PROVISIONING
+            - UPGRADING
+            - RETIRED
+            - OFFBOARDING
+        platform_account_id:
+          type: string
+          example: '012345678912'
+        cloud_platform:
+          type: string
+          example: AWS
+          enum:
+            - AWS
+            - GCP
+        coordinator_build_version:
+          pattern: ^\d*.\d*.\d*$
+          type: string
+          description: Build version of the site coordinator
+          example: 1.34.123
+        sqle_node_ip:
+          pattern: ^(((?!-)[A-Za-z0-9-]{1,63}(?<!-)\.)+[A-Za-z]{2,6}|((0|1\d?\d?|2[0-4]?\d?|25[0-5]?|[3-9]\d?)\.){3}(0|1\d?\d?|2[0-4]?\d?|25[0-5]?|[3-9]\d?))
+          type: string
+          description: The hostname of a database system
+          example: 100.12.13.234
+      description: Site
+    EditCustomer:
+      type: object
+      properties:
+        encryption_key_arn:
+          pattern: ^arn\:aws\:kms\:(us(-gov)?|ap|ca|cn|eu|sa)-(central|(north|south)?(east|west)?)-\d\:[0-9]{12}\:key/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$
+          type: string
+          description: Key ARN for Customer
+          example: arn:aws:kms:us-west-2:123456789571:key/a463bc7d-c3f1-43bb-aa78-0bbkkb5dc0dc
+        status:
+          type: string
+          description: Customer Status
+          example: ONBOARDED
+          enum:
+            - PROVISIONING
+            - ONBOARDED
+            - OFFBOARDING
+            - OFFBOARDED
+        service_account:
+          $ref: '#/components/schemas/EditServiceAccount'
+      description: Edit customer
+    EditServiceAccount:
+      type: object
+      properties:
+        username:
+          pattern: '[a-zA-Z0-9\._\-@]+$'
+          type: string
+          description: Username for the service account
+          example: test_user
+        password:
+          type: string
+          description: Password for the service account
+          example: myPass#1
+      description: Service account for the site
+    EditProperty:
+      required:
+        - value
+      type: object
+      properties:
+        value:
+          type: string
+          description: Value of a property
+          example: '1024'
+    EditEventHubSystemSettings:
+      required:
+        - namespace
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/EditSystemSettingsDto'
+        - type: object
+          properties:
+            namespace:
+              type: string
+              description: Azure Namespace for Event Hub
+              example: testNamespace
+    EditKafkaSystemSettings:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/EditSystemSettingsDto'
+        - type: object
+          properties:
+            bootstrap_servers:
+              type: array
+              description: Comma-separated list of host and port pairs  for the cluster of Kafka brokers
+              example:
+                - kafka1.example.com:9092
+                - kafka2.example.com:9092
+              items:
+                type: string
+    EditKinesisSystemSettings:
+      required:
+        - region
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/EditSystemSettingsDto'
+        - type: object
+          properties:
+            region:
+              type: string
+              description: AWS Region for Kinesis System
+              example: us-west-2
+    EditSystem:
+      type: object
+      properties:
+        name:
+          maxLength: 128
+          minLength: 1
+          pattern: '[A-Za-z][ A-Za-z0-9_.-]+$'
+          type: string
+          description: Unique name for source or target system
+          example: MyKafka
+        description:
+          maxLength: 256
+          minLength: 0
+          pattern: '[A-Za-z][ A-Za-z0-9_.,-]+$'
+          type: string
+          description: User provided summary describing the purpose of source or target system
+          example: Kafka in prod environment
+        settings:
+          oneOf:
+            - $ref: '#/components/schemas/EditEventHubSystemSettings'
+            - $ref: '#/components/schemas/EditKafkaSystemSettings'
+            - $ref: '#/components/schemas/EditKinesisSystemSettings'
+      example:
+        name: MyKafka
+        description: Kafka in prod environment
+        settings:
+          bootstrap_servers:
+            - kafka1.example.com:9092
+            - kafka2.example.com:9092
+    EditSystemSettingsDto:
+      type: object
+      description: Specific settings to access source or target system
+    EditCredential:
+      type: object
+      properties:
+        name:
+          maxLength: 128
+          minLength: 1
+          pattern: '[A-Za-z][ A-Za-z0-9_.-]+$'
+          type: string
+          description: Unique name for credential
+          example: System-1 Credential
+        description:
+          maxLength: 256
+          minLength: 1
+          pattern: '[A-Za-z][ A-Za-z0-9_.,-]+$'
+          type: string
+          description: User provided summary describing the purpose of a credential
+          example: Kafka Credential for System-1
+        credential_details:
+          oneOf:
+            - $ref: '#/components/schemas/EventHubCredentialDetails'
+            - $ref: '#/components/schemas/KafkaCredentialDetails'
+            - $ref: '#/components/schemas/KinesisCredentialDetails'
+            - $ref: '#/components/schemas/TeradataDatabaseCredentialDetails'
+    EditEventHubStreamSourceSettings:
+      required:
+        - event_position_type
+      type: object
+      example:
+        event_hub_name: truck_locations
+        event_position_type: EARLIEST
+      allOf:
+        - $ref: '#/components/schemas/StreamSourceSettings'
+        - type: object
+          properties:
+            event_hub_name:
+              type: string
+              description: The name of the event hub to read from
+              example: truck_locations
+            event_position_type:
+              type: string
+              description: Initial event position in an event hub to read from
+              example: EARLIEST
+              enum:
+                - EARLIEST
+                - LATEST
+                - FROM_ENQUEUED_TIME
+            enqueued_datetime:
+              type: string
+              description: Date and time from which the event enqueued within the partition will be read.
+              format: date-time
+              example: '2021-07-28T10:43:25.964Z'
+            maximum_message_count:
+              type: integer
+              description: The maximum number of messages to receive in a batch
+              format: int32
+              example: 500
+    EditKafkaStreamSourceSettings:
+      required:
+        - initial_offset
+      type: object
+      example:
+        initial_offset: EARLIEST
+      allOf:
+        - $ref: '#/components/schemas/StreamSourceSettings'
+        - type: object
+          properties:
+            topic_name:
+              type: string
+              description: The Kafka topic to read from
+              example: truck_locations
+            initial_offset:
+              type: string
+              description: Initial offset in the Kafka topic to read from
+              example: EARLIEST
+              enum:
+                - EARLIEST
+                - LATEST
+                - AT_TIMESTAMP
+            offset_timestamp:
+              type: string
+              description: The timestamp used for initial offset setting "AT_TIMESTAMP"
+              format: date-time
+              example: '2021-07-28T10:43:25.964Z'
+    EditKinesisStreamSourceSettings:
+      required:
+        - shard_iterator_type
+      type: object
+      example:
+        shard_iterator_type: TRIM_HORIZON
+      allOf:
+        - $ref: '#/components/schemas/StreamSourceSettings'
+        - type: object
+          properties:
+            stream_name:
+              type: string
+              description: The name of the Kinesis data stream to read from
+              example: truck_location
+            shard_iterator_type:
+              type: string
+              description: Initial shard iterator in a kinesis data stream to read from
+              example: TRIM_HORIZON
+              enum:
+                - TRIM_HORIZON
+                - LATEST
+                - AT_TIMESTAMP
+            sequence_timestamp:
+              type: string
+              description: The timestamp used for initial shard iterator setting "AT_TIMESTAMP"
+              format: date-time
+              example: '2021-07-28T10:43:25.964Z'
+            max_records_per_read:
+              type: integer
+              description: Maximum number of records fetched in a single read operation
+              format: int32
+              example: 1000
+            max_reads_per_second:
+              type: integer
+              description: Maximum number of read operations performed per second
+              format: int32
+              example: 2
+    EditStream:
+      type: object
+      properties:
+        name:
+          maxLength: 128
+          minLength: 1
+          pattern: '[A-Za-z][ A-Za-z0-9_.-]+$'
+          type: string
+          description: Unique name for stream
+          example: truck_locations
+        description:
+          maxLength: 256
+          minLength: 0
+          pattern: '[A-Za-z][ A-Za-z0-9_.,-]+$'
+          type: string
+          description: User provided summary describing the purpose of the stream
+          example: This stream will have locations data
+        source_system_id:
+          type: string
+          description: Id of source system for the stream
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        target_system_id:
+          type: string
+          description: Id of target system for the stream
+          format: uuid
+          example: 38400000-8cf0-11bd-b23e-10b96e4ef00d
+        source_credential_id:
+          type: string
+          description: Id of credential to use for the source system of the stream
+          format: uuid
+          example: 3c034ae6-fab8-49f6-901c-aeffd1763f28
+        target_credential_id:
+          type: string
+          description: Id of credential to use for the target system of the stream
+          format: uuid
+          example: 8659a44e-e2c6-4dd5-a6a3-4a3ed9a73818
+        source_settings:
+          oneOf:
+            - $ref: '#/components/schemas/EditEventHubStreamSourceSettings'
+            - $ref: '#/components/schemas/EditKafkaStreamSourceSettings'
+            - $ref: '#/components/schemas/EditKinesisStreamSourceSettings'
+        target_settings:
+          oneOf:
+            - $ref: '#/components/schemas/EditTeradataDatabaseStreamTargetSettings'
+        transformation_rules:
+          oneOf:
+            - $ref: '#/components/schemas/JsonTransformationRules'
+            - $ref: '#/components/schemas/RawBinaryTransformationRules'
+            - $ref: '#/components/schemas/RawTextTransformationRules'
+        error_handling:
+          $ref: '#/components/schemas/ErrorHandlingSettings'
+    EditTeradataDatabaseStreamTargetSettings:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/StreamTargetSettings'
+        - type: object
+          properties:
+            database:
+              pattern: ^[^\d][a-zA-Z0-9\(\)\[\]\{\}\<\>\?\.\,\|"~@$=%+#_`!;'^&\:\*\-\/\\]*{1,128}$
+              type: string
+              description: Database to write to
+              example: locationDB
+            table:
+              pattern: ^[^\d][a-zA-Z0-9\(\)\[\]\{\}\<\>\?\.\,\|"~@$=%+#_`!;'^&\:\*\-\/\\]*{1,128}$
+              type: string
+              description: Table to write to
+              example: truck_locations
+    GetSite:
+      required:
+        - site_id
+      type: object
+      properties:
+        site_id:
+          type: string
+          description: Id for Site
+          example: TDICA03040DEV01
+        customer_id:
+          type: string
+          description: Id for Customer
+          example: f03c5b68dbcaac1c498d3423e29619ec
+        status:
+          type: string
+          example: OPERATIONAL
+          enum:
+            - OPERATIONAL
+            - PROVISIONING
+            - UPGRADING
+            - RETIRED
+            - OFFBOARDING
+        site_gateway_url:
+          type: string
+          description: Site gateway
+          example: https://site.teradata.com:8080
+        region:
+          type: string
+          description: Region of Site
+          example: us-west-2
+        coordinator_build_version:
+          type: string
+          example: 1.1.1
+        worker_build_version:
+          type: string
+          example: 1.2.2
+        cloud_platform:
+          type: string
+          example: AWS
+          enum:
+            - AWS
+            - GCP
+        platform_account_id:
+          type: string
+          example: '012345678912'
+        sqle_node_ip:
+          type: string
+        created_on:
+          type: string
+          format: date-time
+        modified_on:
+          type: string
+          format: date-time
+      description: Site
+    GetAllStreams:
+      required:
+        - data_format
+        - name
+        - source_credential_id
+        - source_settings
+        - source_system_id
+        - target_credential_id
+        - target_settings
+        - target_system_id
+      type: object
+      properties:
+        stream_id:
+          type: string
+          description: Auto-generated id for stream.
+          format: uuid
+          example: 3bd85f64-5717-4562-b3fc-2c963f66afa6
+        name:
+          maxLength: 128
+          minLength: 1
+          pattern: '[A-Za-z][ A-Za-z0-9_.-]+$'
+          type: string
+          description: Unique name for stream
+          example: truck_locations
+        description:
+          maxLength: 256
+          minLength: 0
+          pattern: '[A-Za-z][ A-Za-z0-9_.,-]+$'
+          type: string
+          description: User provided summary describing the purpose of the stream
+          example: This stream will have locations data
+        owner:
+          type: string
+          description: Owner for the stream
+          example: James Smith
+        stream_status:
+          type: string
+          description: Current status of stream
+          enum:
+            - CREATED
+            - STARTING
+            - STARTED
+            - STOPPING
+            - STOPPED
+            - ERROR
+            - RECOVERING
+            - PAUSED
+        site:
+          type: string
+          description: Site identifier
+          example: TDICAMHRZPROD02
+        source_system_id:
+          type: string
+          description: Id of source system for the stream
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        source_system_name:
+          type: string
+          description: Unique name for source system
+          example: Kafka system
+        target_system_id:
+          type: string
+          description: Id of target system for the stream
+          format: uuid
+          example: 38400000-8cf0-11bd-b23e-10b96e4ef00d
+        target_system_name:
+          type: string
+          description: Unique name for target system
+          example: Teradata database system
+        source_credential_id:
+          type: string
+          description: Id of credential to use for the source system of the stream
+          format: uuid
+          example: 3c034ae6-fab8-49f6-901c-aeffd1763f28
+        source_credential_name:
+          type: string
+          description: Unique name for source credential
+          example: Kafka credential
+        target_credential_id:
+          type: string
+          description: Id of credential to use for the target system of the stream
+          format: uuid
+          example: 8659a44e-e2c6-4dd5-a6a3-4a3ed9a73818
+        target_credential_name:
+          type: string
+          description: Unique name for target credential
+          example: Teradata database credential
+        source_settings:
+          oneOf:
+            - $ref: '#/components/schemas/CreateEventHubStreamSourceSettings'
+            - $ref: '#/components/schemas/CreateKafkaStreamSourceSettings'
+            - $ref: '#/components/schemas/CreateKinesisStreamSourceSettings'
+        target_settings:
+          oneOf:
+            - $ref: '#/components/schemas/CreateTeradataDatabaseStreamTargetSettings'
+        data_format:
+          type: string
+          description: Structure of the data in the source system
+          example: JSON
+          enum:
+            - JSON
+            - RAW_TEXT
+            - RAW_BINARY
+        created_on:
+          type: string
+          description: Stream creation time
+          format: date-time
+          example: '2021-05-13T12:35:37.867Z'
+        modified_on:
+          type: string
+          description: Last modified time of stream
+          format: date-time
+          example: '2021-05-17T12:34:37.867Z'
+    GetSiteLevelConfigProperties:
+      type: object
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+            description: Properties for the config
+            example: '{"worker.memory":"1024"}'
+          description: Properties for the config
+          example:
+            worker.memory: '1024'
+    GetEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID of the event
+          format: uuid
+          example: 0a663346-3466-4bb9-9d53-2dbb15eb368c
+        customer_id:
+          type: string
+          description: Id for Customer
+          example: '1234'
+        event_action:
+          type: string
+          description: Event action
+          example: NOTIFY
+          enum:
+            - NOTIFY
+            - STOP_STREAM
+        status:
+          type: string
+          description: Status of the event action
+          example: COMPLETED
+          enum:
+            - COMPLETED
+            - CREATED
+            - IN_PROGRESS
+            - FAILED
+        request_details:
+          type: object
+          description: Request details sent for performing event
+          example: |-
+            [{"key":"userId","value":"6c3caaaf-996d-4635-bcce-919284da368b"},
+            {"key":"emailSubject","value":"Streams - Stream Test_Stream_kccvKYdcRNsvEiNiRuDB has errors"},
+            {"key":"emailMessage","value":"The stream has stopped abruptly. },{"key":"topic","value":"streams.vantage.teradata.com"},
+            {"key":"criticality","value":"high"}]
+        response_details:
+          type: string
+          description: Response details for events executed
+          example: '{"result":{"message":"Success: Notification Request Queued Successfully","data":{"notify-notification":{"notification_id":"f20cba34-a794-4992-bc12-a68d3b9532c5","status":true,"message":"Success","channel_name":"DirectToUser"},"notify-recipient":{"status":true,"message":"Success"}}}}'
+        event_time:
+          type: string
+          description: Time at which the event occurred
+          format: date-time
+          example: '2021-05-13T11:54:37.867Z'
+    GetCustomer:
+      required:
+        - encryption_key_arn
+        - id
+      type: object
+      properties:
+        id:
+          type: string
+          description: Id for Customer
+          example: '12345'
+        encryption_key_arn:
+          type: string
+          description: Key ARN for Customer
+          example: arn:aws:kms:us-west-2:123456789571:key/a463bc7d-c3f1-43bb-aa78-0bbkkb5dc0dc
+        status:
+          type: string
+          description: Customer Status
+          example: ONBOARDED
+          enum:
+            - PROVISIONING
+            - ONBOARDED
+            - OFFBOARDING
+            - OFFBOARDED
+        created_on:
+          type: string
+          description: Customer creation time
+          format: date-time
+          example: '2021-05-13T12:05:37.867Z'
+        modified_on:
+          type: string
+          description: Last modified time of customer
+          format: date-time
+          example: '2021-05-17T12:25:37.867Z'
+      description: Get customer
+    GetConfigProperty:
+      required:
+        - level
+        - level_id
+        - property_id
+        - property_name
+        - property_value
+      type: object
+      properties:
+        property_id:
+          type: string
+          description: Randomly generated id of a property
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        level:
+          type: string
+          description: Level for the config
+          example: PLATFORM
+          enum:
+            - GLOBAL
+            - PLATFORM
+            - CUSTOMER
+            - SITE
+        level_id:
+          type: string
+          description: Id of a level
+          example: AWS
+        property_name:
+          type: string
+          description: Name of a property
+          example: worker.memory
+        property_value:
+          type: string
+          description: Value of a property
+          example: '1024'
+    GetConfigPropertyMetadata:
+      required:
+        - level
+        - level_id
+        - property_id
+        - property_name
+        - property_value
+      type: object
+      properties:
+        property_id:
+          type: string
+          description: Randomly generated id of a property
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        level:
+          type: string
+          description: Level for the config
+          example: PLATFORM
+          enum:
+            - GLOBAL
+            - PLATFORM
+            - CUSTOMER
+            - SITE
+        level_id:
+          type: string
+          description: Id of a level
+          example: AWS
+        property_name:
+          type: string
+          description: Name of a property
+          example: worker.memory
+        property_value:
+          type: string
+          description: Value of a property
+          example: '1024'
+        created_on:
+          type: string
+          description: Property creation time
+          format: date-time
+          example: '2021-05-13T12:35:37.867Z'
+        modified_on:
+          type: string
+          description: Last modified time of property
+          format: date-time
+          example: '2021-05-17T13:20:37.867Z'
+        created_by:
+          type: string
+          description: Property created by
+          example: James Smith
+        modified_by:
+          type: string
+          description: Property modified by
+          example: Harley Benton
+    GetConfigLevelSummary:
+      required:
+        - level
+        - level_entries_count
+        - level_info
+      type: object
+      properties:
+        level:
+          type: string
+          description: Level for the config
+          example: PLATFORM
+          enum:
+            - GLOBAL
+            - PLATFORM
+            - CUSTOMER
+            - SITE
+        level_entries_count:
+          type: integer
+          description: Total count of the entries for a particular level
+          format: int32
+          example: 10
+        level_info:
+          type: array
+          description: Information of a level
+          example:
+            - level_id: AWS
+              properties_count: '2'
+            - level_id: GCP
+              properties_count: '3'
+          items:
+            $ref: '#/components/schemas/GetLevelInfo'
+    GetLevelInfo:
+      required:
+        - level_id
+        - properties_count
+      type: object
+      properties:
+        level_id:
+          type: string
+          description: Id of a level
+          example: AWS
+        properties_count:
+          type: integer
+          description: Total count of the properties
+          format: int32
+          example: 10
+    GetConfigLevelProperties:
+      required:
+        - properties_count
+      type: object
+      properties:
+        properties_count:
+          type: integer
+          description: Total count of the properties
+          format: int32
+          example: 10
+        properties:
+          type: array
+          description: Properties for the config
+          example:
+            - id: 67daecf7-75cf-4436-b5f8-0108baff545e
+              name: worker.memory
+              value: '1024'
+            - id: 69dff1b2-cb64-4167-856b-d937f5faec7e
+              name: site.region
+              value: us-west-2
+          items:
+            $ref: '#/components/schemas/GetPropertyDto'
+    GetPropertyDto:
+      required:
+        - id
+        - name
+        - value
+      type: object
+      properties:
+        id:
+          type: string
+          description: Randomly generated id of a property
+          format: uuid
+          example: 67daecf7-75cf-4436-b5f8-0108baff545e
+        name:
+          type: string
+          description: Name of a property
+          example: worker.memory
+        value:
+          type: string
+          description: Value of a property
+          example: '1024'
+    GetSystem:
+      required:
+        - name
+        - settings
+        - system_id
+        - type
+      type: object
+      properties:
+        system_id:
+          type: string
+          description: Auto-generated id for source or target system
+          format: uuid
+          example: 3bd85f64-5717-4562-b3fc-2c963f66afa6
+        name:
+          maxLength: 128
+          minLength: 1
+          pattern: '[A-Za-z][ A-Za-z0-9_.-]+$'
+          type: string
+          description: Unique name for source or target system
+          example: MyKafka
+        description:
+          maxLength: 256
+          minLength: 0
+          pattern: '[A-Za-z][ A-Za-z0-9_.,-]+$'
+          type: string
+          description: User provided summary describing the purpose of source or target system
+          example: Kafka in prod environment
+        type:
+          type: string
+          description: Type of System
+          example: KAFKA
+          enum:
+            - KAFKA
+            - KINESIS
+            - EVENT_HUBS
+            - TERADATA_DATABASE
+        category:
+          type: string
+          description: General category of system (event streaming system or database system)
+          example: EVENT_STREAMING_SYSTEM
+          enum:
+            - EVENT_STREAMING_SYSTEM
+            - DATABASE
+        settings:
+          oneOf:
+            - $ref: '#/components/schemas/CreateEventHubSystemSettings'
+            - $ref: '#/components/schemas/CreateKafkaSystemSettings'
+            - $ref: '#/components/schemas/CreateKinesisSystemSettings'
+            - $ref: '#/components/schemas/CreateTeradataDatabaseSystemSettings'
+        created_on:
+          type: string
+          description: System creation time
+          format: date-time
+          example: '2021-05-13T11:54:37.867Z'
+        modified_on:
+          type: string
+          description: Last modified time of system
+          format: date-time
+          example: '2021-05-17T13:20:37.867Z'
+      example:
+        system_id: 3bd85f64-5717-4562-b3fc-2c963f66afa6
+        name: MyKafka
+        description: Kafka in prod environment
+        type: KAFKA
+        category: EVENT_STREAMING_SYSTEM
+        settings:
+          bootstrap_servers:
+            - kafka1.example.com:9092
+            - kafka2.example.com:9092
+        created_on: '2021-05-13T11:54:37.867Z'
+        modified_on: '2021-05-17T13:20:37.867Z'
+    GetCredential:
+      required:
+        - credential_details
+        - credential_id
+        - name
+        - type
+      type: object
+      properties:
+        credential_id:
+          type: string
+          description: Auto-generated id for credential
+          format: uuid
+          example: 3c034ae6-fab8-49f6-901c-aeffd1763f28
+        name:
+          maxLength: 128
+          minLength: 1
+          pattern: '[A-Za-z][ A-Za-z0-9_.-]+$'
+          type: string
+          description: Unique name for credential
+          example: System-1 Credential
+        description:
+          maxLength: 256
+          minLength: 0
+          pattern: '[A-Za-z][ A-Za-z0-9_.,-]+$'
+          type: string
+          description: User provided summary describing the purpose of a credential
+          example: Kafka Credential for System-1
+        type:
+          type: string
+          example: KAFKA
+          enum:
+            - KAFKA
+            - KINESIS
+            - EVENT_HUBS
+            - TERADATA_DATABASE
+        credential_details:
+          oneOf:
+            - $ref: '#/components/schemas/EventHubCredentialDetails'
+            - $ref: '#/components/schemas/KafkaCredentialDetails'
+            - $ref: '#/components/schemas/KinesisCredentialDetails'
+            - $ref: '#/components/schemas/TeradataDatabaseCredentialDetails'
+        created_on:
+          type: string
+          description: Credential creation time
+          format: date-time
+          example: '2021-05-13T12:05:37.867Z'
+        modified_on:
+          type: string
+          description: Last modified time of system credential
+          format: date-time
+          example: '2021-05-17T12:25:37.867Z'
+      example:
+        credential_id: 59b59f7d-2f93-4712-bdb5-0b2ab9ec5de5
+        name: System Credential
+        description: Kafka Credential for System-1
+        type: KAFKA
+        credential_details:
+          security_protocol: SASL_SSL
+          security_properties:
+            mechanism: PLAIN
+        created_on: '2022-08-08T07:01:27.657318Z'
+        modified_on: '2022-08-08T07:01:27.657338Z'
+    GetStream:
+      required:
+        - data_format
+        - error_handling
+        - name
+        - source_credential_id
+        - source_settings
+        - source_system_id
+        - target_credential_id
+        - target_settings
+        - target_system_id
+        - transformation_rules
+      type: object
+      properties:
+        stream_id:
+          type: string
+          description: Auto-generated id for stream.
+          format: uuid
+          example: 3bd85f64-5717-4562-b3fc-2c963f66afa6
+        name:
+          maxLength: 128
+          minLength: 1
+          pattern: '[A-Za-z][ A-Za-z0-9_.-]+$'
+          type: string
+          description: Unique name for stream
+          example: truck_locations
+        description:
+          maxLength: 256
+          minLength: 0
+          pattern: '[A-Za-z][ A-Za-z0-9_.,-]+$'
+          type: string
+          description: User provided summary describing the purpose of the stream
+          example: This stream will have locations data
+        owner:
+          type: string
+          description: Owner for the stream
+          example: James Smith
+        stream_status:
+          type: string
+          description: Current status of stream
+          enum:
+            - CREATED
+            - STARTING
+            - STARTED
+            - STOPPING
+            - STOPPED
+            - ERROR
+            - RECOVERING
+            - PAUSED
+        site:
+          type: string
+          description: Site identifier
+          example: TDICAMHRZPROD02
+        source_system_id:
+          type: string
+          description: Id of source system for the stream
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        source_system_name:
+          type: string
+          description: Unique name for source system
+          example: Kafka system
+        target_system_id:
+          type: string
+          description: Id of target system for the stream
+          format: uuid
+          example: 38400000-8cf0-11bd-b23e-10b96e4ef00d
+        target_system_name:
+          type: string
+          description: Unique name for target system
+          example: Teradata database system
+        source_credential_id:
+          type: string
+          description: Id of credential to use for the source system of the stream
+          format: uuid
+          example: 3c034ae6-fab8-49f6-901c-aeffd1763f28
+        source_credential_name:
+          type: string
+          description: Unique name for source credential
+          example: Kafka credential
+        target_credential_id:
+          type: string
+          description: Id of credential to use for the target system of the stream
+          format: uuid
+          example: 8659a44e-e2c6-4dd5-a6a3-4a3ed9a73818
+        target_credential_name:
+          type: string
+          description: Unique name for target credential
+          example: Teradata database credential
+        source_settings:
+          oneOf:
+            - $ref: '#/components/schemas/CreateEventHubStreamSourceSettings'
+            - $ref: '#/components/schemas/CreateKafkaStreamSourceSettings'
+            - $ref: '#/components/schemas/CreateKinesisStreamSourceSettings'
+        target_settings:
+          oneOf:
+            - $ref: '#/components/schemas/CreateTeradataDatabaseStreamTargetSettings'
+        data_format:
+          type: string
+          description: Structure of the data in the source system
+          example: JSON
+          enum:
+            - JSON
+            - RAW_TEXT
+            - RAW_BINARY
+        transformation_rules:
+          oneOf:
+            - $ref: '#/components/schemas/JsonTransformationRules'
+            - $ref: '#/components/schemas/RawBinaryTransformationRules'
+            - $ref: '#/components/schemas/RawTextTransformationRules'
+        error_handling:
+          $ref: '#/components/schemas/ErrorHandlingSettings'
+        created_on:
+          type: string
+          description: Stream creation time
+          format: date-time
+          example: '2021-05-13T12:35:37.867Z'
+        modified_on:
+          type: string
+          description: Last modified time of stream
+          format: date-time
+          example: '2021-05-17T12:34:37.867Z'
+    GetStreamStatistics:
+      type: object
+      properties:
+        metric:
+          type: array
+          items:
+            $ref: '#/components/schemas/Metric'
+        interval:
+          type: string
+          enum:
+            - HOURLY
+            - DAILY
+        startTime:
+          type: string
+        endTime:
+          type: string
+        key:
+          type: string
+          enum:
+            - TOTAL_RECORDS_COUNT
+            - INGESTED_RECORDS_COUNT
+            - INGESTED_RECORDS_BYTES
+            - INGEST_RATE_RECORDS_PER_SECOND
+            - INGEST_RATE_BYTES_PER_SECOND
+            - TOTAL_RATE_RECORDS_PER_SECOND
+            - AVERAGE_LATENCY_MILLISECONDS
+            - MAX_LATENCY_MILLISECONDS
+            - ERROR_RATE_BYTES_PER_SECOND
+            - ERROR_RECORDS_COUNT
+            - ERROR_RECORDS_BYTES
+        units:
+          type: string
+          enum:
+            - RECORDS
+            - BYTES
+            - RECORDS_PER_SECOND
+            - BYTES_PER_SECOND
+            - MILLISECONDS
+            - FAILED_RECORDS_PER_RECORDS_CONSUMED
+    Metric:
+      type: object
+      properties:
+        value:
+          type: string
+        timestamp:
+          type: string
+    GetPolicy:
+      type: object
+      properties:
+        iam_policy:
+          type: object
+          description: IAM Policy
+          example:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: VisualEditor0
+                Effect: Allow
+                Action:
+                  - kinesis:ListStreams
+                Resource: '*'
+              - Sid: VisualEditor1
+                Effect: Allow
+                Action:
+                  - kinesis:SubscribeToShard
+                  - kinesis:ListShards
+                  - kinesis:DescribeStreamSummary
+                  - kinesis:DescribeStreamConsumer
+                  - kinesis:RegisterStreamConsumer
+                  - kinesis:GetShardIterator
+                  - kinesis:GetRecords
+                  - kinesis:DescribeStream
+                Resource:
+                  - arn:aws:kinesis:us-west-2:123456789123:stream/Test_stream
+        trust_relationship_policy:
+          type: object
+          description: TRUST RELATIONSHIP POLICY
+          example:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Principal:
+                  AWS:
+                    - arn:aws:iam::123456789123:root
+                Action: sts:AssumeRole
+                Condition:
+                  StringEquals:
+                    sts:ExternalId: '12345'
+  securitySchemes:
+    Vantage Single Sign On:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
